@@ -173,4 +173,63 @@ describe('DockerManager', () => {
       expect(result).toContain('-runner:node18');
     });
   });
+
+  describe('Docker name sanitization', () => {
+    it('should convert project name to lowercase', () => {
+      const managerWithUpperCase = new DockerManager('/path/to/MyProject');
+      const imageName = managerWithUpperCase.getImageName('20');
+
+      expect(imageName).toBe('myproject-runner:node20');
+      expect(imageName).not.toMatch(/[A-Z]/);
+    });
+
+    it('should replace invalid characters with dashes', () => {
+      const managerWithSpecialChars = new DockerManager('/path/to/My_Project@123');
+      const imageName = managerWithSpecialChars.getImageName('20');
+
+      expect(imageName).toBe('my-project-123-runner:node20');
+      expect(imageName).toMatch(/^[a-z0-9-]+:[a-z0-9]+$/);
+    });
+
+    it('should handle multiple consecutive invalid characters', () => {
+      const managerWithMultipleChars = new DockerManager('/path/to/My___Project!!!');
+      const imageName = managerWithMultipleChars.getImageName('20');
+
+      expect(imageName).toBe('my---project----runner:node20');
+      expect(imageName).not.toMatch(/[A-Z_!]/);
+    });
+
+    it('should work with already valid names', () => {
+      const managerWithValidName = new DockerManager('/path/to/my-project-123');
+      const imageName = managerWithValidName.getImageName('18');
+
+      expect(imageName).toBe('my-project-123-runner:node18');
+    });
+
+    it('should generate valid Docker container name', () => {
+      const managerWithMixedCase = new DockerManager('/path/to/Merchant-Office');
+      
+      // Simulate runContainer call
+      managerWithMixedCase.runContainer('20', 'start', '3000', {});
+
+      // Check that execSync was called with lowercase container name
+      expect(execSync).toHaveBeenCalledWith(
+        expect.stringMatching(/--name merchant-office-container/),
+        expect.any(Object)
+      );
+    });
+
+    it('should generate valid Docker image name in commands', () => {
+      const managerWithMixedCase = new DockerManager('/path/to/Merchant-Office');
+      
+      // Simulate runContainer call
+      managerWithMixedCase.runContainer('20', 'start', '3000', {});
+
+      // Check that execSync was called with lowercase image name
+      expect(execSync).toHaveBeenCalledWith(
+        expect.stringMatching(/merchant-office-runner:node20/),
+        expect.any(Object)
+      );
+    });
+  });
 });

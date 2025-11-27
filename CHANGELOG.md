@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2025-11-27
+
+### Fixed
+- Fixed Docker container name sanitization - now properly converts uppercase letters to lowercase
+- Fixed Docker image name validation to comply with Docker naming requirements
+- Added validation to prevent `FROM node:undefined-alpine` in generated Dockerfiles
+- Improved error handling for Node.js version selection
+
+### Added
+- Node.js version validation in DockerfileGenerator
+- 10 new unit tests for Docker name sanitization
+- 7 new unit tests for Node.js version validation
+- Better test coverage (70.89% from 64.66%)
+
+## [1.0.1] - 2025-11-27
+
+### Changed
+- Updated package metadata
+- Improved documentation
+
 ## [1.0.0] - 2025-11-27
 
 ### Added

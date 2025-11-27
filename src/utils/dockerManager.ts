@@ -59,18 +59,27 @@ export class DockerManager {
 
     console.log(chalk.blue(`\n🐳 Starting container: ${containerName}\n`));
 
-    // Build environment variables
-    const envFlags = Object.entries(envVars)
-      .map(([key, value]) => `-e ${key}="${value}"`)
-      .join(' ');
-
     // Run container with interactive mode
-    const command = `docker run --rm --name ${containerName} -p ${port}:${port} ${envFlags} -v ${this.workDir}:/app ${imageName} npm run ${script}`;
+    // Use array format for better argument handling
+    const baseCommand = [
+      'docker', 'run', '--rm',
+      '--name', containerName,
+      '-p', `${port}:${port}`,
+      '-v', `${this.workDir}:/app`,
+    ];
+
+    // Add environment variables
+    Object.entries(envVars).forEach(([key, value]) => {
+      baseCommand.push('-e', `${key}=${value}`);
+    });
+
+    // Add image and command
+    baseCommand.push(imageName, 'npm', 'run', script);
 
     try {
-      execSync(command, { 
+      execSync(baseCommand.join(' '), { 
         stdio: 'inherit',
-        cwd: this.workDir 
+        cwd: this.workDir
       });
     } catch (error) {
       console.log(chalk.yellow('\nContainer stopped'));

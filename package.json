@@ -1,6 +1,6 @@
 {
   "name": "cli-docker-runner",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Secure CLI tool to run frontend projects in Docker containers, protecting local environment from malicious packages",
   "main": "dist/index.js",
   "bin": {

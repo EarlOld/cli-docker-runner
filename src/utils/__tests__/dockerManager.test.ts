@@ -232,4 +232,90 @@ describe('DockerManager', () => {
       );
     });
   });
+
+  describe('Container reuse', () => {
+    it('should check if container exists', () => {
+      (execSync as jest.Mock).mockReturnValue('test-container\n');
+
+      const exists = manager.containerExists('test-container');
+
+      expect(exists).toBe(true);
+      expect(execSync).toHaveBeenCalledWith(
+        expect.stringContaining('docker ps -a --filter "name=test-container"'),
+        expect.any(Object)
+      );
+    });
+
+    it('should return false if container does not exist', () => {
+      (execSync as jest.Mock).mockReturnValue('');
+
+      const exists = manager.containerExists('test-container');
+
+      expect(exists).toBe(false);
+    });
+
+    it('should check if container is running', () => {
+      (execSync as jest.Mock).mockReturnValue('test-container\n');
+
+      const isRunning = manager.containerIsRunning('test-container');
+
+      expect(isRunning).toBe(true);
+      expect(execSync).toHaveBeenCalledWith(
+        expect.stringContaining('docker ps --filter "name=test-container"'),
+        expect.any(Object)
+      );
+    });
+
+    it('should check if image exists', () => {
+      (execSync as jest.Mock).mockReturnValue('');
+
+      const exists = manager.imageExists('test-image:latest');
+
+      expect(exists).toBe(true);
+      expect(execSync).toHaveBeenCalledWith(
+        'docker image inspect test-image:latest',
+        expect.any(Object)
+      );
+    });
+
+    it('should restart existing container', () => {
+      manager.restartContainer('test-container');
+
+      expect(execSync).toHaveBeenCalledWith(
+        'docker start -a test-container',
+        expect.objectContaining({
+          stdio: 'inherit',
+        })
+      );
+    });
+
+    it('should reuse stopped container on second run', () => {
+      // Mock sequence: containerExists=true, containerIsRunning=false, then restart
+      (execSync as jest.Mock).mockImplementation((cmd: string) => {
+        // First call: docker ps -a (check if exists) - return container name
+        if (cmd.includes('docker ps -a')) {
+          return 'project-container\n';
+        }
+        // Second call: docker ps (check if running) - return empty (not running)
+        if (cmd.includes('docker ps') && !cmd.includes('ps -a')) {
+          return '';
+        }
+        // Third call should be docker start -a
+        return '';
+      });
+
+      manager.runContainer('20', 'start', '3000', {});
+
+      // Should call docker start -a (restart) instead of docker run (create new)
+      expect(execSync).toHaveBeenCalledWith(
+        expect.stringContaining('docker start -a'),
+        expect.any(Object)
+      );
+      // Should NOT call docker run to create new container
+      const dockerRunCalls = (execSync as jest.Mock).mock.calls.filter(
+        call => call[0].includes('docker run')
+      );
+      expect(dockerRunCalls.length).toBe(0);
+    });
+  });
 });

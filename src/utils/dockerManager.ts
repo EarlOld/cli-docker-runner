@@ -54,15 +54,25 @@ export class DockerManager {
     const imageName = `${this.projectName}-runner:node${nodeVersion}`;
     const containerName = `${this.projectName}-container`;
 
-    // Stop and remove existing container
-    this.stopContainer(containerName);
+    // Check if container exists and is stopped
+    if (this.containerExists(containerName) && !this.containerIsRunning(containerName)) {
+      console.log(chalk.yellow(`\n♻️  Found existing container: ${containerName}`));
+      console.log(chalk.blue('   Reusing existing container instead of creating new one\n'));
+      this.restartContainer(containerName);
+      return;
+    }
 
-    console.log(chalk.blue(`\n🐳 Starting container: ${containerName}\n`));
+    // Stop and remove existing running container
+    if (this.containerIsRunning(containerName)) {
+      this.stopContainer(containerName);
+    }
+
+    console.log(chalk.blue(`\n🐳 Starting new container: ${containerName}\n`));
 
     // Run container with interactive mode
     // Use array format for better argument handling
     const baseCommand = [
-      'docker', 'run', '--rm',
+      'docker', 'run',
       '--name', containerName,
       '-p', `${port}:${port}`,
       '-v', `${this.workDir}:/app`,
@@ -92,6 +102,51 @@ export class DockerManager {
       execSync(`docker rm ${containerName}`, { stdio: 'ignore' });
     } catch {
       // Container doesn't exist or already stopped
+    }
+  }
+
+  public containerExists(containerName: string): boolean {
+    try {
+      const result = execSync(`docker ps -a --filter "name=${containerName}" --format "{{.Names}}"`, { 
+        encoding: 'utf-8',
+        stdio: 'pipe'
+      });
+      return result.trim() === containerName;
+    } catch {
+      return false;
+    }
+  }
+
+  public containerIsRunning(containerName: string): boolean {
+    try {
+      const result = execSync(`docker ps --filter "name=${containerName}" --format "{{.Names}}"`, { 
+        encoding: 'utf-8',
+        stdio: 'pipe'
+      });
+      return result.trim() === containerName;
+    } catch {
+      return false;
+    }
+  }
+
+  public imageExists(imageName: string): boolean {
+    try {
+      execSync(`docker image inspect ${imageName}`, { stdio: 'ignore' });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  public restartContainer(containerName: string): void {
+    try {
+      console.log(chalk.blue(`\n🔄 Restarting existing container: ${containerName}\n`));
+      execSync(`docker start -a ${containerName}`, { 
+        stdio: 'inherit',
+        cwd: this.workDir 
+      });
+    } catch (error) {
+      console.log(chalk.yellow('\nContainer stopped'));
     }
   }
 
@@ -135,5 +190,39 @@ export class DockerManager {
 
   public getImageName(nodeVersion: string): string {
     return `${this.projectName}-runner:node${nodeVersion}`;
+  }
+
+  public cleanupAll(): void {
+    const spinner = ora('Removing Docker containers and images...').start();
+
+    try {
+      // Stop and remove all containers for this project
+      const containerPattern = `${this.projectName}-container`;
+      try {
+        execSync(`docker ps -a --filter "name=${containerPattern}" -q | xargs -r docker rm -f`, { 
+          stdio: 'pipe',
+          shell: '/bin/bash'
+        });
+        spinner.text = 'Containers removed, cleaning up images...';
+      } catch {
+        // No containers found or already removed
+      }
+
+      // Remove all images for this project
+      const imagePattern = `${this.projectName}-runner`;
+      try {
+        execSync(`docker images "${imagePattern}" -q | xargs -r docker rmi -f`, { 
+          stdio: 'pipe',
+          shell: '/bin/bash'
+        });
+      } catch {
+        // No images found or already removed
+      }
+
+      spinner.succeed(chalk.green('Docker resources cleaned successfully'));
+    } catch (error) {
+      spinner.fail(chalk.red('Failed to clean Docker resources'));
+      throw error;
+    }
   }
 }

@@ -19,8 +19,8 @@ WORKDIR ${workDir}
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --omit=dev || npm install --production
+# Install all dependencies (including dev)
+RUN npm ci || npm install
 
 # Copy project files
 COPY . .

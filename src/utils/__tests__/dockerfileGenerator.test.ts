@@ -20,10 +20,18 @@ describe('DockerfileGenerator', () => {
       expect(result).toContain('FROM node:18-alpine');
       expect(result).toContain('WORKDIR /app');
       expect(result).toContain('COPY package*.json ./');
-      expect(result).toContain('RUN npm ci --omit=dev || npm install --production');
+      expect(result).toContain('RUN npm ci || npm install');
       expect(result).toContain('COPY . .');
       expect(result).toContain('EXPOSE 3000');
       expect(result).toContain('CMD ["npm", "start"]');
+    });
+
+    it('should install all dependencies including dev', () => {
+      const result = generator.generateDockerfile('20');
+
+      expect(result).toContain('RUN npm ci || npm install');
+      expect(result).not.toContain('--omit=dev');
+      expect(result).not.toContain('--production');
     });
 
     it('should generate Dockerfile with custom work directory', () => {

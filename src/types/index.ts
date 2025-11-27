@@ -8,9 +8,9 @@ export interface ProjectConfig {
 }
 
 export interface DockerOptions {
-  nodeVersion: string;
+  node: string;
   port?: string;
-  noCache?: boolean;
+  cache?: boolean;
 }
 
 export interface PackageJson {

@@ -3,11 +3,12 @@ import { DockerOptions } from '../types';
 import { DockerfileGenerator } from '../utils/dockerfileGenerator';
 import { DockerManager } from '../utils/dockerManager';
 
-export async function updateCommand(options: Pick<DockerOptions, 'nodeVersion'>): Promise<void> {
+export async function updateCommand(options: Pick<DockerOptions, 'node'>): Promise<void> {
   try {
     console.log(chalk.bold.blue('\n🔄 Updating dependencies in Docker...\n'));
 
     const workDir = process.cwd();
+    const nodeVersion = options.node || '20';
     
     // Check Docker installation
     const dockerManager = new DockerManager(workDir);
@@ -19,15 +20,15 @@ export async function updateCommand(options: Pick<DockerOptions, 'nodeVersion'>)
 
     // Generate Dockerfile if needed
     const dockerfileGenerator = new DockerfileGenerator();
-    const dockerfileContent = dockerfileGenerator.generateDockerfile(options.nodeVersion);
+    const dockerfileContent = dockerfileGenerator.generateDockerfile(nodeVersion);
     const dockerfilePath = dockerfileGenerator.saveDockerfile(dockerfileContent, workDir);
     dockerfileGenerator.saveDockerIgnore(workDir);
 
     // Build image
-    dockerManager.buildImage(dockerfilePath, options.nodeVersion, true);
+    dockerManager.buildImage(dockerfilePath, nodeVersion, true);
 
     // Update dependencies
-    dockerManager.updateDependencies(options.nodeVersion);
+    dockerManager.updateDependencies(nodeVersion);
 
     console.log(chalk.green('\n✅ Dependencies updated successfully!'));
 

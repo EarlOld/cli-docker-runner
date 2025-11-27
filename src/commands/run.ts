@@ -11,6 +11,8 @@ export async function runCommand(options: DockerOptions): Promise<void> {
     console.log(chalk.bold.blue('\n🚀 Docker Runner - Starting...\n'));
 
     const workDir = process.cwd();
+    const nodeVersion = options.node || '20';
+    const noCache = options.cache === false; // --no-cache sets cache to false
     
     // Check Docker installation
     const dockerManager = new DockerManager(workDir);
@@ -51,24 +53,24 @@ export async function runCommand(options: DockerOptions): Promise<void> {
 
     // Generate Dockerfile
     const dockerfileGenerator = new DockerfileGenerator();
-    const dockerfileContent = dockerfileGenerator.generateDockerfile(options.nodeVersion);
+    const dockerfileContent = dockerfileGenerator.generateDockerfile(nodeVersion);
     const dockerfilePath = dockerfileGenerator.saveDockerfile(dockerfileContent, workDir);
     dockerfileGenerator.saveDockerIgnore(workDir);
 
-    console.log(chalk.green(`✓ Generated Dockerfile with Node.js ${options.nodeVersion}`));
+    console.log(chalk.green(`✓ Generated Dockerfile with Node.js ${nodeVersion}`));
 
     // Build Docker image
-    dockerManager.buildImage(dockerfilePath, options.nodeVersion, options.noCache);
+    dockerManager.buildImage(dockerfilePath, nodeVersion, noCache);
 
     // Run container
     const port = options.port || '3000';
     console.log(chalk.blue(`\n📦 Running with configuration:`));
     console.log(chalk.gray(`  - Script: ${selectedScript}`));
-    console.log(chalk.gray(`  - Node: ${options.nodeVersion}`));
+    console.log(chalk.gray(`  - Node: ${nodeVersion}`));
     console.log(chalk.gray(`  - Port: ${port}`));
     console.log(chalk.gray(`  - Env vars: ${Object.keys(envVars).length}`));
 
-    dockerManager.runContainer(options.nodeVersion, selectedScript, port, envVars);
+    dockerManager.runContainer(nodeVersion, selectedScript, port, envVars);
 
   } catch (error) {
     if (error instanceof Error) {

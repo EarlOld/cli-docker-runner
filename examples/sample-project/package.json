@@ -1,0 +1,14 @@
+{
+  "name": "sample-project",
+  "version": "1.0.0",
+  "description": "Sample project for testing cli-docker-runner",
+  "scripts": {
+    "start": "echo 'Starting development server...' && sleep 10",
+    "build": "echo 'Building project...'",
+    "test": "echo 'Running tests...'",
+    "dev": "echo 'Running in dev mode...'"
+  },
+  "dependencies": {
+    "express": "^4.18.0"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "name": "cli-docker-runner",
+  "version": "1.0.0",
+  "description": "Secure CLI tool to run frontend projects in Docker containers, protecting local environment from malicious packages",
+  "main": "dist/index.js",
+  "bin": {
+    "docker-runner": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "prepare": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EarlOld/cli-docker-runner.git"
+  },
+  "bugs": {
+    "url": "https://github.com/EarlOld/cli-docker-runner/issues"
+  },
+  "homepage": "https://github.com/EarlOld/cli-docker-runner#readme",
+  "keywords": [
+    "docker",
+    "cli",
+    "frontend",
+    "security",
+    "container",
+    "npm",
+    "package-runner",
+    "nodejs",
+    "isolation",
+    "safe-environment"
+  ],
+  "author": "EarlOld",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "inquirer": "^9.2.12",
+    "chalk": "^5.3.0",
+    "dotenv": "^16.3.1",
+    "ora": "^7.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/inquirer": "^9.0.7",
+    "@types/jest": "^29.5.11",
+    "@typescript-eslint/eslint-plugin": "^6.13.2",
+    "@typescript-eslint/parser": "^6.13.2",
+    "eslint": "^8.55.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
+}

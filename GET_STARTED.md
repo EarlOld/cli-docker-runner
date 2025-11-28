@@ -176,7 +176,7 @@ MIT License - use freely!
 ---
 
 **Author**: EarlOld  
-**Version**: 1.0.0  
+**Version**: 2.0.1  
 **Status**: ✅ Ready to use
 
 🎊 Congratulations! Your CLI Docker Runner is ready!

@@ -20,6 +20,7 @@ describe('DockerfileGenerator', () => {
       expect(result).toContain('FROM node:18-alpine');
       expect(result).toContain('WORKDIR /app');
       expect(result).toContain('COPY package*.json ./');
+      expect(result).toContain('COPY .npmrc* ./');
       expect(result).toContain('RUN npm install');
       expect(result).toContain('COPY . .');
       expect(result).toContain('EXPOSE 3000');
@@ -171,6 +172,23 @@ describe('DockerfileGenerator', () => {
       generator.saveDockerIgnore(targetDir);
 
       expect(fs.writeFileSync).not.toHaveBeenCalled();
+    });
+
+    it('should include .npmrc copy instruction for npm configuration', () => {
+      const result = generator.generateDockerfile('18');
+
+      expect(result).toContain('COPY package*.json ./');
+      expect(result).toContain('COPY .npmrc* ./');
+      // Ensure .npmrc is copied before npm install
+      const packageCopyIndex = result.indexOf('COPY package*.json ./');
+      const npmrcCopyIndex = result.indexOf('COPY .npmrc* ./');
+      const npmInstallIndex = result.indexOf('# Install all dependencies (including dev)\nRUN npm install');
+      
+      expect(packageCopyIndex).toBeGreaterThan(-1);
+      expect(npmrcCopyIndex).toBeGreaterThan(-1);
+      expect(npmInstallIndex).toBeGreaterThan(-1);
+      expect(npmrcCopyIndex).toBeGreaterThan(packageCopyIndex);
+      expect(npmInstallIndex).toBeGreaterThan(npmrcCopyIndex);
     });
   });
 });

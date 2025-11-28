@@ -24,6 +24,9 @@ WORKDIR ${workDir}
 # Copy package files
 COPY package*.json ./
 
+# Copy .npmrc if it exists (for private registries and npm config)
+COPY .npmrc* ./
+
 # Install all dependencies (including dev)
 RUN npm install
 

@@ -38,19 +38,19 @@ describe('runCommand node version handling', () => {
       });
     });
 
-    it('should default to version 20 when undefined is coalesced', () => {
-      // Simulate what happens in run.ts: const nodeVersion = options.node || '20'
+    it('should default to version 22 when undefined is coalesced', () => {
+      // Simulate what happens in run.ts: const nodeVersion = options.node || '22'
       let undefinedValue: string | undefined;
-      const nodeVersion = undefinedValue || '20';
+      const nodeVersion = undefinedValue || '22';
       const dockerfile = dockerfileGenerator.generateDockerfile(nodeVersion);
 
-      expect(dockerfile).toContain('FROM node:20-alpine');
+      expect(dockerfile).toContain('FROM node:22-alpine');
       expect(dockerfile).not.toContain('undefined');
     });
 
     it('should preserve specified version over default', () => {
       const specifiedVersion: string | undefined = '18';
-      const nodeVersion = specifiedVersion || '20';
+      const nodeVersion = specifiedVersion || '22';
       const dockerfile = dockerfileGenerator.generateDockerfile(nodeVersion);
 
       expect(dockerfile).toContain('FROM node:18-alpine');

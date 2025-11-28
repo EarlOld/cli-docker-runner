@@ -19,4 +19,8 @@ module.exports = {
       statements: 64,
     },
   },
+  moduleNameMapper: {
+    '^chalk$': '<rootDir>/src/__mocks__/chalk.js',
+    '^ora$': '<rootDir>/src/__mocks__/ora.js'
+  }
 };

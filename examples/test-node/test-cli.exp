@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+
+# Start the CLI
+spawn node ../../dist/cli.js run --node 18 --port 3000
+
+# Wait for script selection prompt and select "start"
+expect "Select a script to run:"
+send "\r"
+
+# Wait for env variables prompt and select "No" 
+expect "Do you want to enter environment variables manually?"
+send "N\r"
+
+# Wait for server to start
+expect "Counter app listening at http://localhost:3000"
+
+# Wait a few seconds then exit
+sleep 3
+send "\003"
+
+expect eof

@@ -20,7 +20,7 @@ describe('DockerfileGenerator', () => {
       expect(result).toContain('FROM node:18-alpine');
       expect(result).toContain('WORKDIR /app');
       expect(result).toContain('COPY package*.json ./');
-      expect(result).toContain('RUN npm ci || npm install');
+      expect(result).toContain('RUN npm install');
       expect(result).toContain('COPY . .');
       expect(result).toContain('EXPOSE 3000');
       expect(result).toContain('CMD ["npm", "start"]');
@@ -29,7 +29,7 @@ describe('DockerfileGenerator', () => {
     it('should install all dependencies including dev', () => {
       const result = generator.generateDockerfile('20');
 
-      expect(result).toContain('RUN npm ci || npm install');
+      expect(result).toContain('RUN npm install');
       expect(result).not.toContain('--omit=dev');
       expect(result).not.toContain('--production');
     });
@@ -68,6 +68,58 @@ describe('DockerfileGenerator', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(() => generator.generateDockerfile(undefined as any)).toThrow('Node.js version is required and cannot be empty');
       expect(() => generator.generateDockerfile('')).toThrow('Node.js version is required and cannot be empty');
+    });
+
+    it('should include conditional nodemon installation when needed', () => {
+      const result = generator.generateDockerfile('18', '/app', true);
+      
+      expect(result).toContain('# Install nodemon globally for live reload');
+      expect(result).toContain('RUN npm install -g nodemon');
+    });
+
+    it('should skip nodemon installation when not needed', () => {
+      const result = generator.generateDockerfile('20', '/app', false);
+      
+      expect(result).not.toContain('# Install nodemon globally for live reload');
+      expect(result).not.toContain('RUN npm install -g nodemon');
+    });
+
+    it('should include Rollup platform-specific packages installation', () => {
+      const result = generator.generateDockerfile('20', '/app', false);
+
+      expect(result).toContain('# Install additional Rollup platform-specific packages if needed');
+      expect(result).toContain("grep -q '\"rollup\"' package.json || grep -q '\"vite\"' package.json");
+      expect(result).toContain('@rollup/rollup-linux-arm64-musl');
+      expect(result).toContain('@rollup/rollup-linux-x64-musl');
+      expect(result).toContain('@rollup/rollup-linux-arm64-gnu');
+      expect(result).toContain('@rollup/rollup-linux-x64-gnu');
+      expect(result).toContain('@rollup/rollup-darwin-arm64');
+      expect(result).toContain('@rollup/rollup-darwin-x64');
+    });
+
+    it('should handle Rollup installation failures gracefully', () => {
+      const result = generator.generateDockerfile('18', '/app', true);
+
+      expect(result).toContain('2>/dev/null || echo "⚠️  Some Rollup packages could not be installed (this is normal)"');
+    });
+
+    it('should include PATH configuration for node_modules/.bin', () => {
+      const result = generator.generateDockerfile('20', '/app', false);
+
+      expect(result).toContain('ENV PATH="/app/node_modules/.bin:$PATH"');
+    });
+
+    it('should handle custom work directory in PATH configuration', () => {
+      const result = generator.generateDockerfile('18', '/custom/path', true);
+
+      expect(result).toContain('ENV PATH="/custom/path/node_modules/.bin:$PATH"');
+    });
+
+    it('should detect both rollup and vite patterns', () => {
+      const result = generator.generateDockerfile('20', '/app', false);
+
+      // Should check for both "rollup" and "vite" in package.json
+      expect(result).toContain("grep -q '\"rollup\"' package.json || grep -q '\"vite\"' package.json");
     });
   });
 

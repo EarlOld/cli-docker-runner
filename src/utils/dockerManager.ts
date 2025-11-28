@@ -1,10 +1,11 @@
 import { execSync } from 'child_process';
 import * as path from 'path';
+import * as fs from 'fs';
 import chalk from 'chalk';
 import ora from 'ora';
 
 export class DockerManager {
-  private projectName: string;
+  public projectName: string;
   private workDir: string;
 
   constructor(workDir: string = process.cwd()) {
@@ -76,6 +77,7 @@ export class DockerManager {
       '--name', containerName,
       '-p', `${port}:${port}`,
       '-v', `${this.workDir}:/app`,
+      '-v', '/app/node_modules', // Preserve node_modules in container
     ];
 
     // Add environment variables
@@ -83,8 +85,25 @@ export class DockerManager {
       baseCommand.push('-e', `${key}=${value}`);
     });
 
-    // Add image and command
-    baseCommand.push(imageName, 'npm', 'run', script);
+    // Determine if we should use nodemon for live reload
+    const shouldUseLiveReload = this.shouldUseLiveReload(script);
+    
+    if (shouldUseLiveReload) {
+      // Use nodemon for live reload
+      const entryFile = this.getEntryFile(script);
+      baseCommand.push(imageName, 'nodemon', '--legacy-watch', entryFile);
+      console.log(chalk.green('🔄 Live reload enabled - changes will be detected automatically'));
+    } else {
+      // Use regular npm script with framework-specific flags
+      const scriptCommand = this.getScriptCommand(script);
+      if (this.isViteScript(scriptCommand)) {
+        // For Vite, add --host 0.0.0.0 and --port to make it accessible from host
+        baseCommand.push(imageName, 'npm', 'run', script, '--', '--host', '0.0.0.0', '--port', port);
+        console.log(chalk.green('🌐 Vite server configured to listen on all interfaces'));
+      } else {
+        baseCommand.push(imageName, 'npm', 'run', script);
+      }
+    }
 
     try {
       execSync(baseCommand.join(' '), { 
@@ -224,5 +243,86 @@ export class DockerManager {
       spinner.fail(chalk.red('Failed to clean Docker resources'));
       throw error;
     }
+  }
+
+  /**
+   * Determine if a script should use live reload
+   */
+  public shouldUseLiveReload(script: string): boolean {
+    try {
+      const packageJsonPath = path.join(this.workDir, 'package.json');
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+      const scriptCommand = packageJson.scripts?.[script];
+      
+      if (!scriptCommand) return false;
+      
+      // If script uses frameworks with built-in dev servers, don't use nodemon
+      const frameworksWithDevServer = ['vite', 'webpack', 'next', 'nuxt', 'gatsby'];
+      for (const framework of frameworksWithDevServer) {
+        if (scriptCommand.includes(framework)) {
+          return false; // Use npm run script directly
+        }
+      }
+      
+      // For plain Node.js scripts, use nodemon for live reload
+      const liveReloadScripts = ['start', 'dev', 'serve', 'watch'];
+      return liveReloadScripts.includes(script.toLowerCase());
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Get entry file for a script
+   */
+  private getEntryFile(script: string): string {
+    try {
+      const packageJsonPath = path.join(this.workDir, 'package.json');
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+      
+      // Try to parse the script command to find the entry file
+      const scriptCommand = packageJson.scripts?.[script];
+      if (scriptCommand) {
+        // Extract file from common patterns like "node server.js" or "node src/index.js"
+        const nodeMatch = scriptCommand.match(/node\s+([^\s]+)/);
+        if (nodeMatch) {
+          return nodeMatch[1];
+        }
+      }
+      
+      // Fallback to common entry files
+      const commonEntryFiles = ['server.js', 'index.js', 'app.js', 'src/index.js', 'src/app.js'];
+      for (const file of commonEntryFiles) {
+        if (fs.existsSync(path.join(this.workDir, file))) {
+          return file;
+        }
+      }
+      
+      // Last resort - use the main field from package.json
+      return packageJson.main || 'index.js';
+    } catch {
+      // If all fails, default to common entry files
+      return 'server.js';
+    }
+  }
+
+  /**
+   * Get script command from package.json
+   */
+  public getScriptCommand(script: string): string {
+    try {
+      const packageJsonPath = path.join(this.workDir, 'package.json');
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+      return packageJson.scripts?.[script] || '';
+    } catch {
+      return '';
+    }
+  }
+
+  /**
+   * Check if script command uses Vite
+   */
+  public isViteScript(scriptCommand: string): boolean {
+    return scriptCommand.includes('vite') && !scriptCommand.includes('vite build');
   }
 }

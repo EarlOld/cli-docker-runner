@@ -1,7 +1,9 @@
 import { DockerManager } from '../dockerManager';
 import { execSync } from 'child_process';
+import fs from 'fs';
 
 jest.mock('child_process');
+jest.mock('fs');
 jest.mock('chalk', () => ({
   __esModule: true,
   default: {
@@ -33,6 +35,25 @@ describe('DockerManager', () => {
     jest.clearAllMocks();
     // Reset execSync mock to default behavior
     (execSync as jest.Mock).mockImplementation(() => 'Success');
+    
+    // Mock fs.readFileSync for package.json
+    const mockFS = fs as jest.Mocked<typeof fs>;
+    mockFS.readFileSync = jest.fn().mockImplementation((path) => {
+      if (path.toString().includes('package.json')) {
+        return JSON.stringify({
+          scripts: {
+            dev: 'vite',
+            build: 'vite build',
+            start: 'node server.js',
+            server: 'nodemon server.js',
+            custom: 'echo "custom"'
+          }
+        });
+      }
+      return '{}';
+    });
+    
+    mockFS.existsSync = jest.fn().mockReturnValue(true);
   });
 
   describe('checkDockerInstalled', () => {
@@ -316,6 +337,124 @@ describe('DockerManager', () => {
         call => call[0].includes('docker run')
       );
       expect(dockerRunCalls.length).toBe(0);
+    });
+  });
+
+  describe('Vite and Framework Detection', () => {
+    it('should detect Vite scripts correctly', () => {
+      expect(manager.isViteScript('vite')).toBe(true);
+      expect(manager.isViteScript('vite build')).toBe(false); // build is excluded
+      expect(manager.isViteScript('vite --mode development')).toBe(true);
+      expect(manager.isViteScript('npm run dev')).toBe(false);
+      expect(manager.isViteScript('webpack')).toBe(false);
+      expect(manager.isViteScript('next dev')).toBe(false);
+    });
+
+    it('should get correct script commands', () => {
+      expect(manager.getScriptCommand('dev')).toBe('vite');
+      expect(manager.getScriptCommand('build')).toBe('vite build');
+      expect(manager.getScriptCommand('start')).toBe('node server.js');
+      expect(manager.getScriptCommand('custom')).toBe('echo "custom"');
+    });
+
+    it('should determine live reload usage correctly', () => {
+      // Should use live reload (nodemon) for Node.js scripts
+      expect(manager.shouldUseLiveReload('start')).toBe(true);
+      expect(manager.shouldUseLiveReload('server')).toBe(false); // server contains nodemon
+      
+      // Should NOT use live reload for Vite/framework scripts (they have their own HMR)
+      expect(manager.shouldUseLiveReload('dev')).toBe(false);
+      expect(manager.shouldUseLiveReload('serve')).toBe(false);
+    });
+
+    it('should generate correct Docker run commands for Vite projects', () => {
+      const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation();
+      
+      // Mock container checks to create new container
+      (execSync as jest.Mock).mockImplementation((cmd: string) => {
+        if (cmd.includes('docker ps')) return '';
+        return '';
+      });
+
+      manager.runContainer('20', 'dev', '5173', {});
+
+      // Find the docker run command call
+      const dockerRunCall = (execSync as jest.Mock).mock.calls.find(
+        call => call[0].includes('docker run')
+      );
+
+      expect(dockerRunCall).toBeDefined();
+      expect(dockerRunCall[0]).toContain('npm run dev -- --host 0.0.0.0 --port 5173');
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('🌐 Vite server configured to listen on all interfaces')
+      );
+
+      mockConsoleLog.mockRestore();
+    });
+
+    it('should generate correct Docker run commands for Node.js projects', () => {
+      const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation();
+      
+      // Mock container checks to create new container
+      (execSync as jest.Mock).mockImplementation((cmd: string) => {
+        if (cmd.includes('docker ps')) return '';
+        return '';
+      });
+
+      manager.runContainer('18', 'start', '3000', {});
+
+      // Find the docker run command call
+      const dockerRunCall = (execSync as jest.Mock).mock.calls.find(
+        call => call[0].includes('docker run')
+      );
+
+      expect(dockerRunCall).toBeDefined();
+      expect(dockerRunCall[0]).toContain('nodemon --legacy-watch server.js');
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('🔄 Live reload enabled - changes will be detected automatically')
+      );
+
+      mockConsoleLog.mockRestore();
+    });
+
+    it('should handle port mapping correctly', () => {
+      // Mock container checks to create new container
+      (execSync as jest.Mock).mockImplementation((cmd: string) => {
+        if (cmd.includes('docker ps')) return '';
+        return '';
+      });
+
+      manager.runContainer('20', 'dev', '5174', {});
+
+      // Find the docker run command call
+      const dockerRunCall = (execSync as jest.Mock).mock.calls.find(
+        call => call[0].includes('docker run')
+      );
+
+      expect(dockerRunCall).toBeDefined();
+      expect(dockerRunCall[0]).toContain('-p 5174:5174');
+      expect(dockerRunCall[0]).toContain('--port 5174');
+    });
+
+    it('should handle environment variables correctly', () => {
+      const envVars = { NODE_ENV: 'development', API_URL: 'http://localhost:8080' };
+      
+      // Mock container checks to create new container
+      (execSync as jest.Mock).mockImplementation((cmd: string) => {
+        if (cmd.includes('docker ps')) return '';
+        return '';
+      });
+
+      manager.runContainer('20', 'dev', '3000', envVars);
+
+      // Find the docker run command call
+      const dockerRunCall = (execSync as jest.Mock).mock.calls.find(
+        call => call[0].includes('docker run')
+      );
+
+      expect(dockerRunCall).toBeDefined();
+      expect(dockerRunCall[0]).toContain('-e NODE_ENV=development');
+      expect(dockerRunCall[0]).toContain('-e API_URL=http://localhost:8080');
     });
   });
 });

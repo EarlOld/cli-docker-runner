@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { DockerManager } from '../utils/dockerManager';
+import { FileWatcher } from '../utils/fileWatcher';
 
 interface CleanOptions {
   force?: boolean;
@@ -12,6 +13,7 @@ export async function cleanCommand(options: CleanOptions): Promise<void> {
 
     const workDir = process.cwd();
     const dockerManager = new DockerManager(workDir);
+    const fileWatcher = new FileWatcher(workDir);
 
     if (!dockerManager.checkDockerInstalled()) {
       console.error(chalk.red('❌ Docker is not installed or not running'));
@@ -39,8 +41,11 @@ export async function cleanCommand(options: CleanOptions): Promise<void> {
     // Clean up containers and images
     dockerManager.cleanupAll();
 
+    // Clean up file watcher hash
+    fileWatcher.cleanup();
+
     console.log(chalk.green('\n✅ Cleanup completed successfully!'));
-    console.log(chalk.gray('   All Docker containers and images have been removed'));
+    console.log(chalk.gray('   All Docker containers, images, and cache files have been removed'));
 
   } catch (error) {
     if (error instanceof Error) {

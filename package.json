@@ -58,6 +58,9 @@
   "engines": {
     "node": ">=16.0.0"
   },
+  "publishConfig": {
+    "registry": "https://www.npmjs.com/package/cli-docker-runner"
+  },
   "files": [
     "dist",
     "README.md",

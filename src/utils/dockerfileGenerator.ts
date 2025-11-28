@@ -31,8 +31,8 @@ COPY .npmrc* ./
 RUN npm install
 
 # Install additional Rollup platform-specific packages if needed
-RUN if [ -f package.json ] && (grep -q '"rollup"' package.json || grep -q '"vite"' package.json); then \\
-    echo "🔧 Detected Rollup/Vite project, installing platform-specific packages..."; \\
+RUN if [ -f package.json ] && (grep -q '"rollup"' package.json || grep -q '"vite"' package.json || grep -q '"astro"' package.json); then \\
+    echo "🔧 Detected Rollup/Vite/Astro project, installing platform-specific packages..."; \\
     npm install --save-dev \\
       @rollup/rollup-linux-arm64-musl \\
       @rollup/rollup-linux-x64-musl \\

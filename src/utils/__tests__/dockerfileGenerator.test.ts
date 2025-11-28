@@ -117,11 +117,12 @@ describe('DockerfileGenerator', () => {
       expect(result).toContain('ENV PATH="/custom/path/node_modules/.bin:$PATH"');
     });
 
-    it('should detect both rollup and vite patterns', () => {
+    it('should detect rollup, vite, and astro patterns', () => {
       const result = generator.generateDockerfile('20', '/app', false);
 
-      // Should check for both "rollup" and "vite" in package.json
-      expect(result).toContain("grep -q '\"rollup\"' package.json || grep -q '\"vite\"' package.json");
+      // Should check for "rollup", "vite", and "astro" in package.json
+      expect(result).toContain("grep -q '\"rollup\"' package.json || grep -q '\"vite\"' package.json || grep -q '\"astro\"' package.json");
+      expect(result).toContain('🔧 Detected Rollup/Vite/Astro project, installing platform-specific packages...');
     });
   });
 

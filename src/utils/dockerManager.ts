@@ -97,9 +97,13 @@ export class DockerManager {
       // Use regular npm script with framework-specific flags
       const scriptCommand = this.getScriptCommand(script);
       if (this.isViteScript(scriptCommand)) {
-        // For Vite, add --host 0.0.0.0 and --port to make it accessible from host
+        // For Vite and Astro, add --host 0.0.0.0 and --port to make it accessible from host
         baseCommand.push(imageName, 'npm', 'run', script, '--', '--host', '0.0.0.0', '--port', port);
-        console.log(chalk.green('🌐 Vite server configured to listen on all interfaces'));
+        if (scriptCommand.includes('astro')) {
+          console.log(chalk.green('🚀 Astro dev server configured to listen on all interfaces'));
+        } else {
+          console.log(chalk.green('🌐 Vite server configured to listen on all interfaces'));
+        }
       } else {
         baseCommand.push(imageName, 'npm', 'run', script);
       }
@@ -257,7 +261,7 @@ export class DockerManager {
       if (!scriptCommand) return false;
       
       // If script uses frameworks with built-in dev servers, don't use nodemon
-      const frameworksWithDevServer = ['vite', 'webpack', 'next', 'nuxt', 'gatsby'];
+      const frameworksWithDevServer = ['vite', 'webpack', 'next', 'nuxt', 'gatsby', 'astro'];
       for (const framework of frameworksWithDevServer) {
         if (scriptCommand.includes(framework)) {
           return false; // Use npm run script directly
@@ -320,9 +324,10 @@ export class DockerManager {
   }
 
   /**
-   * Check if script command uses Vite
+   * Check if script command uses dev server that needs host configuration (Vite, Astro)
    */
   public isViteScript(scriptCommand: string): boolean {
-    return scriptCommand.includes('vite') && !scriptCommand.includes('vite build');
+    return (scriptCommand.includes('vite') && !scriptCommand.includes('vite build')) ||
+           (scriptCommand.includes('astro') && !scriptCommand.includes('astro build'));
   }
 }

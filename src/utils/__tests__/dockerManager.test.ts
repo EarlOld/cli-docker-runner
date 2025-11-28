@@ -43,6 +43,8 @@ describe('DockerManager', () => {
         return JSON.stringify({
           scripts: {
             dev: 'vite',
+            'astro:dev': 'astro dev',
+            'astro:build': 'astro build',
             build: 'vite build',
             start: 'node server.js',
             server: 'nodemon server.js',
@@ -341,10 +343,13 @@ describe('DockerManager', () => {
   });
 
   describe('Vite and Framework Detection', () => {
-    it('should detect Vite scripts correctly', () => {
+    it('should detect Vite and Astro scripts correctly', () => {
       expect(manager.isViteScript('vite')).toBe(true);
       expect(manager.isViteScript('vite build')).toBe(false); // build is excluded
       expect(manager.isViteScript('vite --mode development')).toBe(true);
+      expect(manager.isViteScript('astro dev')).toBe(true);
+      expect(manager.isViteScript('astro build')).toBe(false); // build is excluded
+      expect(manager.isViteScript('astro dev --host 0.0.0.0')).toBe(true);
       expect(manager.isViteScript('npm run dev')).toBe(false);
       expect(manager.isViteScript('webpack')).toBe(false);
       expect(manager.isViteScript('next dev')).toBe(false);
@@ -352,6 +357,8 @@ describe('DockerManager', () => {
 
     it('should get correct script commands', () => {
       expect(manager.getScriptCommand('dev')).toBe('vite');
+      expect(manager.getScriptCommand('astro:dev')).toBe('astro dev');
+      expect(manager.getScriptCommand('astro:build')).toBe('astro build');
       expect(manager.getScriptCommand('build')).toBe('vite build');
       expect(manager.getScriptCommand('start')).toBe('node server.js');
       expect(manager.getScriptCommand('custom')).toBe('echo "custom"');
@@ -364,6 +371,7 @@ describe('DockerManager', () => {
       
       // Should NOT use live reload for Vite/framework scripts (they have their own HMR)
       expect(manager.shouldUseLiveReload('dev')).toBe(false);
+      expect(manager.shouldUseLiveReload('astro:dev')).toBe(false); // Astro has built-in HMR
       expect(manager.shouldUseLiveReload('serve')).toBe(false);
     });
 
@@ -455,6 +463,31 @@ describe('DockerManager', () => {
       expect(dockerRunCall).toBeDefined();
       expect(dockerRunCall[0]).toContain('-e NODE_ENV=development');
       expect(dockerRunCall[0]).toContain('-e API_URL=http://localhost:8080');
+    });
+
+    it('should generate correct Docker run commands for Astro projects', () => {
+      const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation();
+      
+      (execSync as jest.Mock).mockImplementation((cmd: string) => {
+        if (cmd.includes('docker ps')) return '';
+        return '';
+      });
+
+      manager.runContainer('20', 'astro:dev', '4321', {});
+
+      // Find the docker run command call
+      const dockerRunCall = (execSync as jest.Mock).mock.calls.find(
+        call => call[0].includes('docker run')
+      );
+
+      expect(dockerRunCall).toBeDefined();
+      expect(dockerRunCall[0]).toContain('npm run astro:dev -- --host 0.0.0.0 --port 4321');
+      expect(dockerRunCall[0]).toContain('-p 4321:4321');
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining('🚀 Astro dev server configured to listen on all interfaces')
+      );
+      
+      mockConsoleLog.mockRestore();
     });
   });
 });

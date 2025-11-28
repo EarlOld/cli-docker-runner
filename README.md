@@ -25,6 +25,21 @@ npx cli-docker-runner run
 - 📦 **Smart**: Auto-detects scripts from package.json
 - ♻️ **Efficient**: Reuses existing containers on subsequent runs
 
+## Supported Frameworks
+
+CLI Docker Runner automatically detects and optimizes for modern web frameworks:
+
+- ⚡ **Vite** - Hot Module Replacement (HMR) with `--host 0.0.0.0` configuration
+- ⚛️ **React** - Create React App and Vite-based React projects
+- 💚 **Vue** - Vue CLI and Vite-based Vue projects  
+- 🚀 **Astro** - Native dev server with automatic host configuration
+- 🟢 **Node.js** - Traditional Node.js applications with nodemon
+
+**Framework Intelligence:**
+- Automatically skips nodemon installation for frameworks with built-in HMR
+- Configures dev servers for network accessibility in Docker containers
+- Installs platform-specific Rollup packages for optimized builds
+
 ## Commands
 
 ```bash

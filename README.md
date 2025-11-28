@@ -44,7 +44,7 @@ docker-runner clean [options]
 ## Options
 
 ### Run command
-- `-n, --node <version>` - Node.js version (default: 20)
+- `-n, --node <version>` - Node.js version (default: 22)
 - `-p, --port <port>` - Port to expose (default: 3000)
 - `--no-cache` - Build without cache
 

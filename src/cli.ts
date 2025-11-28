@@ -10,12 +10,12 @@ const program = new Command();
 program
   .name('docker-runner')
   .description('Secure CLI tool to run frontend projects in Docker containers')
-  .version('1.0.2');
+  .version('2.0.0');
 
 program
   .command('run')
   .description('Run project in Docker container (reuses existing container if available)')
-  .option('-n, --node <version>', 'Node.js version (e.g., 18, 20)', '20')
+  .option('-n, --node <version>', 'Node.js version (e.g., 18, 20, 22)', '22')
   .option('-p, --port <port>', 'Port to expose', '3000')
   .option('--no-cache', 'Build Docker image without cache')
   .action(runCommand);
@@ -23,13 +23,13 @@ program
 program
   .command('install')
   .description('Install dependencies in Docker container')
-  .option('-n, --node <version>', 'Node.js version (e.g., 18, 20)', '20')
+  .option('-n, --node <version>', 'Node.js version (e.g., 18, 20, 22)', '22')
   .action(installCommand);
 
 program
   .command('update')
   .description('Update dependencies in Docker container')
-  .option('-n, --node <version>', 'Node.js version (e.g., 18, 20)', '20')
+  .option('-n, --node <version>', 'Node.js version (e.g., 18, 20, 22)', '22')
   .action(updateCommand);
 
 program

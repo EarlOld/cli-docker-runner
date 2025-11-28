@@ -64,9 +64,10 @@ describe('DockerfileGenerator', () => {
       });
     });
 
-    it('should throw error if nodeVersion is undefined or empty', () => {
+    it('should use default node version when undefined and throw error for empty string', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect(() => generator.generateDockerfile(undefined as any)).toThrow('Node.js version is required and cannot be empty');
+      const dockerfile = generator.generateDockerfile(undefined as any);
+      expect(dockerfile).toContain('FROM node:22-alpine');
       expect(() => generator.generateDockerfile('')).toThrow('Node.js version is required and cannot be empty');
     });
 

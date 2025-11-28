@@ -3,11 +3,11 @@ import * as path from 'path';
 
 export class DockerfileGenerator {
   public generateDockerfile(
-    nodeVersion: string,
+    nodeVersion: string = '22',
     workDir: string = '/app',
     needsNodemon: boolean = true
   ): string {
-    if (!nodeVersion || nodeVersion.trim() === '') {
+    if (nodeVersion.trim() === '') {
       throw new Error('Node.js version is required and cannot be empty');
     }
 

@@ -12,7 +12,7 @@ export async function runCommand(options: DockerOptions): Promise<void> {
     console.log(chalk.bold.blue('\n🚀 Docker Runner - Starting...\n'));
 
     const workDir = process.cwd();
-    const nodeVersion = options.node || '20';
+    const nodeVersion = options.node || '22';
     const noCache = options.cache === false; // --no-cache sets cache to false
     
     // Check Docker installation

@@ -8,7 +8,7 @@ export async function installCommand(options: Pick<DockerOptions, 'node'>): Prom
     console.log(chalk.bold.blue('\n📦 Installing dependencies in Docker...\n'));
 
     const workDir = process.cwd();
-    const nodeVersion = options.node || '20';
+    const nodeVersion = options.node || '22';
     
     // Check Docker installation
     const dockerManager = new DockerManager(workDir);

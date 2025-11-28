@@ -8,7 +8,7 @@ export async function updateCommand(options: Pick<DockerOptions, 'node'>): Promi
     console.log(chalk.bold.blue('\n🔄 Updating dependencies in Docker...\n'));
 
     const workDir = process.cwd();
-    const nodeVersion = options.node || '20';
+    const nodeVersion = options.node || '22';
     
     // Check Docker installation
     const dockerManager = new DockerManager(workDir);

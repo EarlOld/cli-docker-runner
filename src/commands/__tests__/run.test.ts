@@ -16,11 +16,10 @@ describe('runCommand node version handling', () => {
       expect(dockerfile).not.toContain('undefined');
     });
 
-    it('should not allow undefined node version', () => {
+    it('should use default node version when undefined', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect(() => dockerfileGenerator.generateDockerfile(undefined as any)).toThrow(
-        'Node.js version is required and cannot be empty'
-      );
+      const dockerfile = dockerfileGenerator.generateDockerfile(undefined as any);
+      expect(dockerfile).toContain('FROM node:22-alpine');
     });
 
     it('should not allow empty node version', () => {

@@ -13,6 +13,9 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint src/**/*.ts",
+    "security:test": "snyk test",
+    "security:monitor": "snyk monitor",
+    "security:protect": "snyk protect",
     "prepare": "npm run build"
   },
   "repository": {

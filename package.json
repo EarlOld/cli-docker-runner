@@ -1,6 +1,6 @@
 {
   "name": "cli-docker-runner",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "Secure CLI tool to run frontend projects in Docker containers, protecting local environment from malicious packages",
   "main": "dist/index.js",
   "bin": {
@@ -38,11 +38,11 @@
   "author": "EarlOld",
   "license": "MIT",
   "dependencies": {
-    "commander": "^11.1.0",
-    "inquirer": "^9.2.12",
-    "chalk": "^5.3.0",
-    "dotenv": "^16.3.1",
-    "ora": "^7.0.1"
+    "commander": "11.1.0",
+    "inquirer": "9.2.12",
+    "chalk": "5.6.2",
+    "dotenv": "16.3.1",
+    "ora": "7.0.1"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

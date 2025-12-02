@@ -10,7 +10,7 @@ const program = new Command();
 program
   .name('docker-runner')
   .description('Secure CLI tool to run frontend projects in Docker containers')
-  .version('2.0.2');
+  .version('2.1.0');
 
 program
   .command('run')

@@ -54,7 +54,7 @@ jobs:
         run: npm run build
 
       - name: Publish to npm
-        run: npm publish
+        run: NODE_AUTH_TOKEN="" npm publish
 
       - name: Create GitHub Release
         uses: actions/create-release@v1

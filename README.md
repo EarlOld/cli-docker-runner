@@ -1,6 +1,8 @@
 # CLI Docker Runner
 
 [![CI](https://github.com/EarlOld/cli-docker-runner/actions/workflows/ci.yml/badge.svg)](https://github.com/EarlOld/cli-docker-runner/actions/workflows/ci.yml)
+[![Security](https://github.com/EarlOld/cli-docker-runner/actions/workflows/security.yml/badge.svg)](https://github.com/EarlOld/cli-docker-runner/actions/workflows/security.yml)
+[![Known Vulnerabilities](https://snyk.io/test/github/EarlOld/cli-docker-runner/badge.svg)](https://snyk.io/test/github/EarlOld/cli-docker-runner)
 [![npm version](https://img.shields.io/npm/v/cli-docker-runner.svg)](https://www.npmjs.com/package/cli-docker-runner)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
@@ -15,6 +17,15 @@ npm install -g cli-docker-runner
 # Or use with npx
 npx cli-docker-runner run
 ```
+
+## Security & Quality
+
+This project is continuously monitored for security vulnerabilities and maintains high code quality standards:
+
+- 🛡️ **Snyk Security**: Automated vulnerability scanning
+- 🔍 **GitHub Security**: Code scanning with SARIF reports
+- ✅ **Continuous Testing**: Multi-version Node.js testing (16.x, 18.x, 20.x)
+- 📊 **Code Coverage**: Tracked with Codecov integration
 
 ## Features
 

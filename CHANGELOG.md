@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.3] - 2025-12-02
+
+### Added
+- **Security monitoring** - Integrated Snyk security scanning for continuous vulnerability monitoring
+- **Security badges** - Added Snyk vulnerability and security workflow badges to README
+- **Security documentation** - Added comprehensive security setup guide
+
+### Enhanced
+- **CI/CD pipeline** - Separated security scanning into dedicated workflow
+- **README.md** - Added "Security & Quality" section highlighting monitoring capabilities
+- **Documentation** - Improved project security and quality visibility
+
+### Security
+- 🛡️ **Snyk Integration** - Automated vulnerability scanning for dependencies
+- 🔍 **GitHub Security** - Code scanning with SARIF reports integration
+- 📊 **Quality Monitoring** - Enhanced CI pipeline with security checks
+
 ## [2.0.2] - 2025-11-28
 
 ### Added

@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - "v*"
-    branches: [main]
 
 permissions:
   id-token: write  # Required for OIDC
